@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strings em C — char* e String · Guia Completo</title>
+<meta name="description" content="Guia completo e direto sobre char* e String em C/C++ embarcado, com exemplos práticos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1116;
+  --bg-soft:#151a21;
+  --bg-code:#0a0d11;
+  --panel:#1a212b;
+  --ink:#e8eaed;
+  --ink-soft:#aab4c0;
+  --ink-faint:#6b7783;
+  --line:#262e38;
+  --amber:#e8a33d;
+  --amber-soft:#f0c27b;
+  --cyan:#5fd3c4;
+  --green:#7bc96f;
+  --red:#e06c75;
+  --blue:#6ab0f3;
+  --violet:#c08fe0;
+  --sel:rgba(232,163,61,.25);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+::selection{background:var(--sel)}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Newsreader',Georgia,serif;
+  font-size:18px;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+/* ---- Grain / atmosphere ---- */
+body::before{
+  content:"";
+  position:fixed;inset:0;
+  pointer-events:none;z-index:1;
+  background:radial-gradient(ellipse at 20% 0%,rgba(232,163,61,.05),transparent 50%),
+             radial-gradient(ellipse at 80% 100%,rgba(95,211,196,.04),transparent 50%);
+}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px;position:relative;z-index:2}
+
+/* ===== HEADER ===== */
+header{
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#11151b,#0e1116);
+  position:relative;overflow:hidden;
+}
+header::after{
+  content:"char *s = \"hello\";";
+  position:absolute;right:-10px;top:50%;transform:translateY(-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:180px;font-weight:700;color:#fff;
+  opacity:.018;white-space:nowrap;letter-spacing:-8px;
+}
+.head-inner{padding:64px 0 56px;position:relative;z-index:2}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--amber);margin-bottom:22px;font-weight:500;
+}
+h1{
+  font-family:'Fraunces',serif;
+  font-weight:600;font-size:clamp(42px,7vw,82px);
+  line-height:.98;letter-spacing:-.02em;color:#fff;margin-bottom:24px;
+}
+h1 .mono{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--amber);font-size:.82em}
+.lede{
+  font-size:clamp(19px,2.4vw,23px);color:var(--ink-soft);
+  max-width:680px;line-height:1.55;
+}
+.head-meta{
+  display:flex;gap:28px;flex-wrap:wrap;margin-top:36px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-faint);
+}
+.head-meta span{display:flex;align-items:center;gap:8px}
+.head-meta b{color:var(--cyan);font-weight:500}
+
+/* ===== LAYOUT ===== */
+.layout{display:grid;grid-template-columns:240px 1fr;gap:56px;padding:56px 0 120px;align-items:start}
+nav.toc{
+  position:sticky;top:32px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  border-left:1px solid var(--line);padding-left:0;
+}
+nav.toc .toc-title{
+  color:var(--ink-faint);letter-spacing:.2em;text-transform:uppercase;
+  font-size:11px;padding:0 0 14px 18px;
+}
+nav.toc a{
+  display:block;color:var(--ink-soft);text-decoration:none;
+  padding:7px 0 7px 18px;border-left:2px solid transparent;
+  margin-left:-1px;transition:all .15s;line-height:1.4;
+}
+nav.toc a:hover{color:var(--ink)}
+nav.toc a.active{color:var(--amber);border-left-color:var(--amber)}
+nav.toc a .num{color:var(--ink-faint);margin-right:9px}
+
+main{min-width:0;max-width:760px}
+
+/* ===== SECTIONS ===== */
+.section{margin-bottom:72px;scroll-margin-top:28px}
+.section-tag{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--amber);
+  display:flex;align-items:center;gap:12px;margin-bottom:18px;
+}
+.section-tag::before{
+  content:"";width:28px;height:1px;background:var(--amber);
+}
+h2{
+  font-family:'Fraunces',serif;font-weight:600;
+  font-size:clamp(30px,4.5vw,42px);line-height:1.05;
+  letter-spacing:-.015em;color:#fff;margin-bottom:22px;
+}
+h3{
+  font-family:'Fraunces',serif;font-weight:600;font-size:25px;
+  color:#fff;margin:42px 0 14px;letter-spacing:-.01em;
+}
+h4{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+  color:var(--cyan);margin:30px 0 12px;letter-spacing:.02em;
+}
+p{margin-bottom:18px;color:var(--ink-soft)}
+p strong{color:var(--ink);font-weight:600}
+main a{color:var(--amber);text-decoration:none;border-bottom:1px solid rgba(232,163,61,.3)}
+main a:hover{border-bottom-color:var(--amber)}
+.ic{
+  font-family:'JetBrains Mono',monospace;font-size:.88em;
+  background:var(--bg-soft);color:var(--amber-soft);
+  padding:2px 7px;border-radius:4px;border:1px solid var(--line);
+  white-space:nowrap;
+}
+
+/* ===== CODE BLOCKS ===== */
+.code{
+  background:var(--bg-code);border:1px solid var(--line);
+  border-radius:10px;margin:22px 0;overflow:hidden;
+  box-shadow:0 8px 30px rgba(0,0,0,.3);
+}
+.code-head{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 16px;border-bottom:1px solid var(--line);
+  background:var(--panel);
+}
+.dot{width:11px;height:11px;border-radius:50%}
+.dot.r{background:#e06c75}.dot.y{background:#e8a33d}.dot.g{background:#7bc96f}
+.code-file{
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  color:var(--ink-faint);margin-left:8px;
+}
+.code-lang{
+  margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--ink-faint);text-transform:uppercase;letter-spacing:.1em;
+}
+pre{
+  padding:20px;overflow-x:auto;
+  font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.65;
+}
+pre code{font-family:inherit;color:var(--ink)}
+.cm{color:var(--ink-faint);font-style:italic}  /* comentário */
+.kw{color:var(--violet)}                        /* keyword */
+.ty{color:var(--cyan)}                           /* tipo */
+.st{color:var(--green)}                          /* string */
+.nm{color:var(--amber-soft)}                     /* número */
+.fn{color:var(--blue)}                           /* função */
+.op{color:var(--red)}                            /* operador especial */
+.pp{color:var(--amber)}                          /* preprocessador */
+
+/* ===== CALLOUTS ===== */
+.note{
+  border-left:3px solid;border-radius:0 8px 8px 0;
+  padding:16px 20px;margin:22px 0;background:var(--bg-soft);
+  font-size:16.5px;
+}
+.note p:last-child{margin-bottom:0}
+.note .lbl{
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:7px;
+}
+.note.tip{border-color:var(--green)}
+.note.tip .lbl{color:var(--green)}
+.note.warn{border-color:var(--amber)}
+.note.warn .lbl{color:var(--amber)}
+.note.danger{border-color:var(--red)}
+.note.danger .lbl{color:var(--red)}
+
+/* ===== TABLE ===== */
+.tbl{margin:24px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{
+  background:var(--panel);color:var(--cyan);
+  font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;text-align:left;
+  padding:13px 16px;
+}
+td{padding:13px 16px;border-top:1px solid var(--line);color:var(--ink-soft);vertical-align:top}
+td:first-child{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber-soft);white-space:nowrap}
+tr:hover td{background:rgba(255,255,255,.012)}
+
+/* ===== MEMORY DIAGRAM ===== */
+.mem{margin:26px 0;font-family:'JetBrains Mono',monospace;font-size:13px}
+.mem-title{color:var(--ink-faint);font-size:11px;text-transform:uppercase;letter-spacing:.16em;margin-bottom:12px}
+.mem-row{display:flex;gap:4px;margin-bottom:4px;flex-wrap:wrap}
+.cell{
+  min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);border-radius:6px;background:var(--bg-soft);
+  position:relative;color:var(--ink);font-weight:500;
+}
+.cell.hl{border-color:var(--amber);background:rgba(232,163,61,.12);color:var(--amber-soft)}
+.cell.nul{border-color:var(--red);background:rgba(224,108,117,.1);color:var(--red)}
+.cell .addr{position:absolute;top:-18px;left:0;font-size:9px;color:var(--ink-faint)}
+
+/* ===== FOOTER ===== */
+footer{border-top:1px solid var(--line);padding:48px 0;background:var(--bg-soft)}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px}
+.foot-inner p{margin:0;font-size:14px;color:var(--ink-faint);font-family:'JetBrains Mono',monospace}
+.foot-inner a{color:var(--cyan)}
+
+/* progress bar */
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--amber);z-index:99;width:0;transition:width .1s}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;gap:0}
+  nav.toc{display:none}
+  .wrap{padding:0 22px}
+}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+
+<header>
+  <div class="wrap head-inner">
+    <div class="eyebrow">Guia de Referência · Linguagem C / C++</div>
+    <h1>Dominando <span class="mono">char*</span><br>e Strings em C</h1>
+    <p class="lede">Um guia direto e completo sobre como representar, manipular e gerenciar texto em C — do array de caracteres cru à classe <span class="ic">String</span> do Arduino. Cada conceito acompanhado de exemplo prático.</p>
+    <div class="head-meta">
+      <span>◆ <b>11</b> seções</span>
+      <span>◆ <b>30+</b> exemplos</span>
+      <span>◆ Foco em <b>embarcado / ESP32</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+<div class="layout">
+
+<nav class="toc" id="toc">
+  <div class="toc-title">Conteúdo</div>
+  <a href="#intro"><span class="num">00</span>Introdução</a>
+  <a href="#oque-e"><span class="num">01</span>O que é uma string em C</a>
+  <a href="#char-array"><span class="num">02</span>Array de char</a>
+  <a href="#char-ptr"><span class="num">03</span>O ponteiro char*</a>
+  <a href="#funcoes"><span class="num">04</span>Funções da string.h</a>
+  <a href="#formatacao"><span class="num">05</span>Formatação: snprintf</a>
+  <a href="#erros"><span class="num">06</span>Erros comuns</a>
+  <a href="#string-arduino"><span class="num">07</span>A classe String</a>
+  <a href="#comparacao"><span class="num">08</span>char* vs String</a>
+  <a href="#heap"><span class="num">09</span>Fragmentação de heap</a>
+  <a href="#boas-praticas"><span class="num">10</span>Boas práticas</a>
+  <a href="#conclusao"><span class="num">11</span>Conclusão</a>
+</nav>
+
+<main>
+<!-- 00 INTRO -->
+<section class="section" id="intro">
+  <div class="section-tag">Introdução</div>
+  <h2>Por que strings em C são diferentes</h2>
+  <p>Em linguagens como Python ou JavaScript, texto é um tipo nativo: você cria, concatena e descarta strings sem pensar em memória. Em <strong>C</strong> não existe um tipo <span class="ic">string</span> embutido. Texto é representado por uma sequência de bytes na memória, e cabe a você gerenciar onde esses bytes vivem e por quanto tempo.</p>
+  <p>Isso assusta no começo, mas é exatamente o que dá a C seu controle preciso — essencial em sistemas embarcados, onde cada byte de RAM conta. Este guia mostra os dois caminhos: o jeito C cru (<span class="ic">char*</span> e arrays) e a conveniência da classe <span class="ic">String</span> do Arduino, deixando claro quando usar cada um.</p>
+  <div class="note tip">
+    <span class="lbl">Como ler este guia</span>
+    <p>Cada seção tem um exemplo compilável. Se você está no ESP32/Arduino, pode colar os trechos direto no <span class="ic">setup()</span> e ver a saída no Serial Monitor. Os conceitos de <span class="ic">char*</span> valem para C puro também.</p>
+  </div>
+</section>
+
+<!-- 01 O QUE É -->
+<section class="section" id="oque-e">
+  <div class="section-tag">Seção 01</div>
+  <h2>O que é uma string em C</h2>
+  <p>Uma string em C é simplesmente um <strong>array de caracteres terminado por um byte nulo</strong> — o caractere <span class="ic">'\0'</span> (valor zero). Esse terminador é como as funções sabem onde o texto acaba.</p>
+  <p>A palavra <span class="ic">"Oi"</span> não ocupa 2 bytes na memória, e sim <strong>3</strong>:</p>
+  <div class="mem">
+    <div class="mem-title">Memória da string "Oi"</div>
+    <div class="mem-row">
+      <div class="cell hl"><span class="addr">0x00</span>'O'</div>
+      <div class="cell hl"><span class="addr">0x01</span>'i'</div>
+      <div class="cell nul"><span class="addr">0x02</span>\0</div>
+    </div>
+  </div>
+  <p>Sem o <span class="ic">'\0'</span>, funções como <span class="ic">printf</span> ou <span class="ic">strlen</span> continuariam lendo a memória além do texto, produzindo lixo ou travando o programa.</p>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">string_basica.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;string.h&gt;</span>
+
+<span class="ty">int</span> <span class="fn">main</span>(<span class="ty">void</span>) {
+    <span class="cm">// As duas formas abaixo são equivalentes:</span>
+    <span class="ty">char</span> a[] = <span class="st">"Oi"</span>;              <span class="cm">// compilador adiciona '\0'</span>
+    <span class="ty">char</span> b[] = {<span class="st">'O'</span>, <span class="st">'i'</span>, <span class="st">'\0'</span>};  <span class="cm">// explícito</span>
+
+    <span class="fn">printf</span>(<span class="st">"%s tem %zu caracteres\n"</span>, a, <span class="fn">strlen</span>(a));
+    <span class="cm">// Saída: Oi tem 2 caracteres  (strlen NÃO conta o '\0')</span>
+
+    <span class="fn">printf</span>(<span class="st">"mas ocupa %zu bytes\n"</span>, <span class="kw">sizeof</span>(a));
+    <span class="cm">// Saída: mas ocupa 3 bytes  (sizeof conta o '\0')</span>
+
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</code></pre>
+  </div>
+  <div class="note warn">
+    <span class="lbl">Diferença crucial</span>
+    <p><span class="ic">strlen()</span> conta os caracteres <strong>até</strong> o <span class="ic">'\0'</span> (não o inclui). <span class="ic">sizeof()</span> conta o espaço total reservado, <strong>incluindo</strong> o terminador. Confundir os dois é fonte clássica de bugs.</p>
+  </div>
+</section>
+
+<!-- 02 ARRAY DE CHAR -->
+<section class="section" id="char-array">
+  <div class="section-tag">Seção 02</div>
+  <h2>Array de char: a string mutável</h2>
+  <p>Quando você declara <span class="ic">char buffer[N]</span>, o compilador reserva <strong>N bytes contíguos</strong>, geralmente na <em>stack</em> (pilha). Esse espaço é seu para ler e escrever — é a forma preferida para texto que muda.</p>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">array_char.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">char</span> nome[<span class="nm">20</span>];           <span class="cm">// reserva 20 bytes, conteúdo indefinido</span>
+
+<span class="fn">strcpy</span>(nome, <span class="st">"Thiago"</span>);  <span class="cm">// copia "Thiago\0" para dentro</span>
+nome[<span class="nm">0</span>] = <span class="st">'t'</span>;           <span class="cm">// pode modificar caractere a caractere</span>
+
+<span class="fn">printf</span>(<span class="st">"%s\n"</span>, nome);   <span class="cm">// thiago</span>
+
+<span class="cm">// Inicialização direta — tamanho deduzido automaticamente</span>
+<span class="ty">char</span> saudacao[] = <span class="st">"Bom dia"</span>;  <span class="cm">// 8 bytes (7 letras + '\0')</span></code></pre>
+  </div>
+  <h3>Por que dimensionar com folga</h3>
+  <p>O array tem tamanho fixo definido em tempo de compilação. Se você precisa montar uma string de até 15 caracteres, reserve pelo menos <strong>16 bytes</strong> — os 15 visíveis mais o <span class="ic">'\0'</span>. Escrever além do limite é <em>buffer overflow</em>, um dos bugs mais perigosos em C.</p>
+  <div class="mem">
+    <div class="mem-title">char nome[8] = "Bom dia"</div>
+    <div class="mem-row">
+      <div class="cell hl">B</div><div class="cell hl">o</div><div class="cell hl">m</div>
+      <div class="cell hl">␣</div><div class="cell hl">d</div><div class="cell hl">i</div>
+      <div class="cell hl">a</div><div class="cell nul">\0</div>
+    </div>
+  </div>
+  <div class="note tip">
+    <span class="lbl">Regra de ouro</span>
+    <p>Para guardar <strong>N caracteres visíveis</strong>, declare o array com <strong>N+1</strong> bytes. Sempre reserve espaço para o terminador.</p>
+  </div>
+</section>
+
+<!-- 03 CHAR PTR -->
+<section class="section" id="char-ptr">
+  <div class="section-tag">Seção 03</div>
+  <h2>O ponteiro <span style="font-family:'JetBrains Mono',monospace;color:var(--amber)">char*</span></h2>
+  <p>Um <span class="ic">char*</span> não armazena texto — ele armazena o <strong>endereço</strong> do primeiro caractere de uma string em algum lugar da memória. Entender essa distinção é o ponto que separa quem entende C de quem apenas copia exemplos.</p>
+  <h3>Os dois usos de char*</h3>
+  <h4>1. Apontar para um literal (somente leitura)</h4>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">ptr_literal.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">const</span> <span class="ty">char</span> *msg = <span class="st">"Imutável"</span>;
+<span class="cm">// 'msg' aponta para um literal armazenado em memória somente-leitura.</span>
+<span class="cm">// Tentar modificar é comportamento indefinido:</span>
+<span class="cm">// msg[0] = 'x';   ← NÃO FAÇA — pode travar (crash)</span>
+
+<span class="fn">printf</span>(<span class="st">"%s\n"</span>, msg);  <span class="cm">// ler é seguro</span></code></pre>
+  </div>
+  <div class="note danger">
+    <span class="lbl">Armadilha clássica</span>
+    <p>Escrever <span class="ic">char *msg = "texto";</span> e depois tentar <span class="ic">msg[0] = 'X'</span> compila, mas trava em tempo de execução. Literais ficam em memória protegida. Use sempre <span class="ic">const char*</span> para deixar essa intenção clara — o compilador então avisa se você tentar modificar.</p>
+  </div>
+  <h4>2. Apontar para um array que você controla</h4>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">ptr_array.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">char</span> buffer[<span class="nm">32</span>];
+<span class="ty">char</span> *p = buffer;     <span class="cm">// p aponta para o início do buffer</span>
+
+<span class="fn">strcpy</span>(p, <span class="st">"editável"</span>);  <span class="cm">// agora pode modificar via ponteiro</span>
+p[<span class="nm">0</span>] = <span class="st">'E'</span>;            <span class="cm">// OK — buffer é seu</span>
+
+<span class="cm">// Aritmética de ponteiro: avançar pela string</span>
+<span class="kw">while</span> (*p != <span class="st">'\0'</span>) {
+    <span class="fn">putchar</span>(*p);     <span class="cm">// imprime caractere atual</span>
+    p++;              <span class="cm">// avança para o próximo</span>
+}</code></pre>
+  </div>
+  <h3>Array versus ponteiro — a diferença sutil</h3>
+  <div class="tbl"><table>
+    <tr><th>Aspecto</th><th>char arr[]</th><th>char *ptr</th></tr>
+    <tr><td>O que é</td><td>Bloco de memória reservado</td><td>Variável que guarda um endereço</td></tr>
+    <tr><td>sizeof</td><td>Tamanho total do array</td><td>Tamanho de um ponteiro (4 ou 8 bytes)</td></tr>
+    <tr><td>Pode reapontar</td><td>Não — o nome é fixo</td><td>Sim — pode apontar para outro lugar</td></tr>
+    <tr><td>Conteúdo mutável</td><td>Sim</td><td>Depende do que aponta</td></tr>
+  </table></div>
+</section>
+
+<!-- 04 FUNCOES -->
+<section class="section" id="funcoes">
+  <div class="section-tag">Seção 04</div>
+  <h2>As funções da <span style="font-family:'JetBrains Mono',monospace;color:var(--amber)">string.h</span></h2>
+  <p>A biblioteca padrão <span class="ic">&lt;string.h&gt;</span> traz as ferramentas essenciais. Todas dependem do terminador <span class="ic">'\0'</span> para saber onde parar.</p>
+  <div class="tbl"><table>
+    <tr><th>Função</th><th>O que faz</th><th>Cuidado</th></tr>
+    <tr><td>strlen(s)</td><td>Conta caracteres até o '\0'</td><td>Não inclui o terminador</td></tr>
+    <tr><td>strcpy(d,s)</td><td>Copia s para d</td><td>Não checa tamanho de d</td></tr>
+    <tr><td>strncpy(d,s,n)</td><td>Copia no máximo n bytes</td><td>Pode não terminar com '\0'</td></tr>
+    <tr><td>strcat(d,s)</td><td>Concatena s ao fim de d</td><td>d precisa ter espaço</td></tr>
+    <tr><td>strcmp(a,b)</td><td>Compara; 0 se iguais</td><td>Não é booleano!</td></tr>
+    <tr><td>strchr(s,c)</td><td>Acha 1ª ocorrência de c</td><td>Retorna ponteiro ou NULL</td></tr>
+  </table></div>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">funcoes_string.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="pp">#include</span> <span class="st">&lt;string.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+
+<span class="ty">int</span> <span class="fn">main</span>(<span class="ty">void</span>) {
+    <span class="ty">char</span> destino[<span class="nm">50</span>] = <span class="st">"Olá, "</span>;
+    <span class="ty">const</span> <span class="ty">char</span> *nome = <span class="st">"mundo"</span>;
+
+    <span class="fn">strcat</span>(destino, nome);        <span class="cm">// "Olá, mundo"</span>
+    <span class="fn">printf</span>(<span class="st">"%s\n"</span>, destino);
+
+    <span class="cm">// Comparação — ATENÇÃO: 0 significa IGUAIS</span>
+    <span class="kw">if</span> (<span class="fn">strcmp</span>(nome, <span class="st">"mundo"</span>) == <span class="nm">0</span>) {
+        <span class="fn">printf</span>(<span class="st">"São iguais!\n"</span>);
+    }
+
+    <span class="cm">// Buscar um caractere</span>
+    <span class="ty">char</span> *virgula = <span class="fn">strchr</span>(destino, <span class="st">','</span>);
+    <span class="kw">if</span> (virgula) {
+        <span class="fn">printf</span>(<span class="st">"Vírgula na posição %ld\n"</span>, virgula - destino);
+    }
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</code></pre>
+  </div>
+  <div class="note danger">
+    <span class="lbl">strcmp não é booleano</span>
+    <p>Iniciantes escrevem <span class="ic">if (strcmp(a, b))</span> esperando "se iguais". É o oposto: <span class="ic">strcmp</span> retorna <strong>0</strong> quando são iguais, e <span class="ic">if (0)</span> é falso. O correto é <span class="ic">if (strcmp(a, b) == 0)</span>.</p>
+  </div>
+</section>
+
+<!-- 05 FORMATACAO -->
+<section class="section" id="formatacao">
+  <div class="section-tag">Seção 05</div>
+  <h2>Formatação segura com <span style="font-family:'JetBrains Mono',monospace;color:var(--amber)">snprintf</span></h2>
+  <p>Para montar strings com números, variáveis e formatação, <span class="ic">snprintf</span> é a ferramenta certa. Diferente de <span class="ic">sprintf</span>, ele recebe o tamanho do buffer e <strong>nunca escreve além dele</strong> — eliminando overflow.</p>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">snprintf.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">char</span> buf[<span class="nm">32</span>];
+<span class="ty">int</span>   temp = <span class="nm">22</span>;
+<span class="ty">float</span> umid = <span class="nm">65.4</span>;
+
+<span class="cm">// snprintf(destino, tamanho, formato, ...args)</span>
+<span class="fn">snprintf</span>(buf, <span class="kw">sizeof</span>(buf), <span class="st">"%d°C / %.1f%%"</span>, temp, umid);
+<span class="cm">// buf agora contém: "22°C / 65.4%"</span>
+
+<span class="cm">// Montar um tópico MQTT dinâmico</span>
+<span class="ty">char</span> topico[<span class="nm">64</span>];
+<span class="ty">int</span> sala = <span class="nm">3</span>;
+<span class="fn">snprintf</span>(topico, <span class="kw">sizeof</span>(topico), <span class="st">"classroom/sala-%02d/status"</span>, sala);
+<span class="cm">// "classroom/sala-03/status"</span></code></pre>
+  </div>
+  <h4>Especificadores mais usados</h4>
+  <div class="tbl"><table>
+    <tr><th>Código</th><th>Tipo</th><th>Exemplo</th></tr>
+    <tr><td>%d</td><td>int</td><td>42</td></tr>
+    <tr><td>%u</td><td>unsigned</td><td>200</td></tr>
+    <tr><td>%ld / %lu</td><td>long / ulong (32 bits)</td><td>100000</td></tr>
+    <tr><td>%f / %.1f</td><td>float (1 casa)</td><td>3.1 </td></tr>
+    <tr><td>%s</td><td>string (char*)</td><td>"oi"</td></tr>
+    <tr><td>%c</td><td>caractere</td><td>'A'</td></tr>
+    <tr><td>%02d</td><td>int com zero à esquerda</td><td>03</td></tr>
+    <tr><td>%x</td><td>hexadecimal</td><td>1f</td></tr>
+  </table></div>
+  <div class="note tip">
+    <span class="lbl">Por que snprintf no embarcado</span>
+    <p>Em ESP32/Arduino, <span class="ic">snprintf</span> com buffer fixo é a base de bibliotecas eficientes: zero alocação dinâmica, tamanho previsível, sem fragmentação de heap. É exatamente o que substitui a classe <span class="ic">String</span> em código de produção.</p>
+  </div>
+</section>
+
+<!-- 06 ERROS -->
+<section class="section" id="erros">
+  <div class="section-tag">Seção 06</div>
+  <h2>Erros comuns e como evitá-los</h2>
+  <h4>1. Buffer pequeno demais</h4>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">erro_overflow.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">char</span> nome[<span class="nm">5</span>];
+<span class="fn">strcpy</span>(nome, <span class="st">"Thiago"</span>);  <span class="op">// ✗ "Thiago\0" = 7 bytes em 5 → OVERFLOW</span>
+
+<span class="cm">// ✓ Correto: buffer com folga + função limitada</span>
+<span class="ty">char</span> nome2[<span class="nm">16</span>];
+<span class="fn">snprintf</span>(nome2, <span class="kw">sizeof</span>(nome2), <span class="st">"%s"</span>, <span class="st">"Thiago"</span>);</code></pre>
+  </div>
+  <h4>2. Retornar ponteiro para variável local</h4>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">erro_dangling.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">char</span>* <span class="fn">criarNome</span>(<span class="ty">void</span>) {
+    <span class="ty">char</span> local[<span class="nm">20</span>] = <span class="st">"temporário"</span>;
+    <span class="kw">return</span> local;   <span class="op">// ✗ 'local' deixa de existir ao sair da função</span>
+}                    <span class="cm">// ponteiro retornado aponta para lixo</span>
+
+<span class="cm">// ✓ Correto: receber buffer de quem chama</span>
+<span class="ty">void</span> <span class="fn">criarNome2</span>(<span class="ty">char</span> *destino, <span class="ty">size_t</span> n) {
+    <span class="fn">snprintf</span>(destino, n, <span class="st">"%s"</span>, <span class="st">"permanente"</span>);
+}</code></pre>
+  </div>
+  <h4>3. Esquecer o terminador</h4>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">erro_terminador.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="ty">char</span> buf[<span class="nm">3</span>] = {<span class="st">'O'</span>, <span class="st">'i'</span>};  <span class="cm">// só 2 chars, sem '\0' explícito</span>
+<span class="cm">// Neste caso o 3º byte é 0 por inicialização parcial — sorte.</span>
+<span class="cm">// Mas em buffers não inicializados, o lixo continua sendo lido.</span>
+
+<span class="ty">char</span> dst[<span class="nm">4</span>];
+<span class="fn">strncpy</span>(dst, <span class="st">"teste"</span>, <span class="nm">4</span>);  <span class="op">// ✗ copia "test" SEM '\0'</span>
+dst[<span class="nm">3</span>] = <span class="st">'\0'</span>;            <span class="cm">// ✓ garante terminação manual</span></code></pre>
+  </div>
+  <div class="note warn">
+    <span class="lbl">Resumo dos perigos</span>
+    <p>Os três bugs acima — overflow, ponteiro pendente (<em>dangling</em>) e falta de terminador — respondem pela maioria dos crashes em código C com strings. A defesa é sempre a mesma: <strong>buffer com folga, funções com limite de tamanho, e terminação garantida</strong>.</p>
+  </div>
+</section>
+
+<!-- 07 STRING ARDUINO -->
+<section class="section" id="string-arduino">
+  <div class="section-tag">Seção 07</div>
+  <h2>A classe <span style="font-family:'JetBrains Mono',monospace;color:var(--amber)">String</span> do Arduino</h2>
+  <p>No ecossistema Arduino/ESP32 existe a classe <span class="ic">String</span> (com S maiúsculo). Ela embrulha toda a complexidade de <span class="ic">char*</span> numa interface confortável — ao custo de alocar memória dinamicamente.</p>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">string_arduino.ino</span><span class="code-lang">C++</span></div>
+<pre><code><span class="ty">String</span> nome = <span class="st">"Thiago"</span>;
+<span class="ty">String</span> saudacao = <span class="st">"Olá, "</span> + nome;  <span class="cm">// concatenação natural</span>
+
+saudacao += <span class="st">"!"</span>;                     <span class="cm">// anexar</span>
+<span class="ty">int</span> tam = saudacao.<span class="fn">length</span>();        <span class="cm">// tamanho</span>
+
+<span class="kw">if</span> (nome == <span class="st">"Thiago"</span>) {              <span class="cm">// comparação com ==  (intuitivo!)</span>
+    Serial.<span class="fn">println</span>(saudacao);
+}
+
+<span class="cm">// Conversões prontas</span>
+<span class="ty">int</span> n = <span class="ty">String</span>(<span class="st">"42"</span>).<span class="fn">toInt</span>();        <span class="cm">// texto → número</span>
+<span class="ty">String</span> s = <span class="ty">String</span>(<span class="nm">3.14</span>, <span class="nm">2</span>);          <span class="cm">// número → "3.14"</span>
+
+<span class="cm">// Métodos úteis</span>
+saudacao.<span class="fn">toUpperCase</span>();              <span class="cm">// maiúsculas</span>
+saudacao.<span class="fn">indexOf</span>(<span class="st">'T'</span>);              <span class="cm">// posição de um char</span>
+saudacao.<span class="fn">substring</span>(<span class="nm">0</span>, <span class="nm">3</span>);           <span class="cm">// recorte</span></code></pre>
+  </div>
+  <div class="note tip">
+    <span class="lbl">Quando String brilha</span>
+    <p>Para prototipagem rápida, parsing de entradas curtas, ou código que roda poucas vezes (ex: dentro de <span class="ic">setup()</span>), <span class="ic">String</span> é prática e segura — você não corre risco de overflow. O problema aparece em <strong>uso repetido e prolongado</strong>, como veremos a seguir.</p>
+  </div>
+</section>
+
+<!-- 08 COMPARACAO -->
+<section class="section" id="comparacao">
+  <div class="section-tag">Seção 08</div>
+  <h2><span style="font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:.85em">char*</span> vs <span style="font-family:'JetBrains Mono',monospace;color:var(--amber);font-size:.85em">String</span></h2>
+  <p>Não existe "melhor" absoluto — existe o adequado ao contexto. Esta tabela resume a decisão:</p>
+  <div class="tbl"><table>
+    <tr><th>Critério</th><th>char* / array</th><th>String (Arduino)</th></tr>
+    <tr><td>Memória</td><td>Fixa, previsível</td><td>Dinâmica (heap)</td></tr>
+    <tr><td>Velocidade</td><td>Muito rápida</td><td>Mais lenta</td></tr>
+    <tr><td>Facilidade</td><td>Exige cuidado</td><td>Muito fácil</td></tr>
+    <tr><td>Concatenar</td><td>strcat / snprintf</td><td>Operador +</td></tr>
+    <tr><td>Comparar</td><td>strcmp(a,b)==0</td><td>a == b</td></tr>
+    <tr><td>Risco overflow</td><td>Sim, se descuidar</td><td>Não</td></tr>
+    <tr><td>Risco fragmentação</td><td>Não</td><td>Sim (uso intenso)</td></tr>
+    <tr><td>Portável p/ C puro</td><td>Sim</td><td>Não (só Arduino)</td></tr>
+  </table></div>
+  <div class="note tip">
+    <span class="lbl">Regra prática</span>
+    <p><strong>Use <span class="ic">String</span></strong> em prototipagem e código que roda poucas vezes. <strong>Use <span class="ic">char*</span> + <span class="ic">snprintf</span></strong> em loops, callbacks frequentes, drivers e bibliotecas — qualquer coisa que executa milhares de vezes ao longo de horas.</p>
+  </div>
+</section>
+
+<!-- 09 HEAP -->
+<section class="section" id="heap">
+  <div class="section-tag">Seção 09</div>
+  <h2>Fragmentação de heap: o perigo silencioso</h2>
+  <p>Toda vez que uma <span class="ic">String</span> cresce, encolhe ou é criada, ela aloca e libera blocos no <em>heap</em>. Em um PC isso é trivial. Em um microcontrolador com poucos KB de RAM, alocações e liberações repetidas deixam <strong>buracos</strong> na memória.</p>
+  <div class="mem">
+    <div class="mem-title">Heap fragmentado — 6 bytes livres, mas em pedaços</div>
+    <div class="mem-row">
+      <div class="cell hl">■</div><div class="cell">□</div><div class="cell hl">■</div>
+      <div class="cell">□</div><div class="cell hl">■</div><div class="cell">□</div>
+      <div class="cell hl">■</div><div class="cell">□</div>
+    </div>
+  </div>
+  <p>Há 4 bytes livres (□) somados, mas espalhados. Se o programa pedir um bloco contíguo de 4 bytes, a alocação <strong>falha</strong> mesmo havendo espaço total — porque não há 4 bytes seguidos. Com o tempo, o dispositivo trava ou reinicia sozinho.</p>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">fragmentacao.ino</span><span class="code-lang">C++</span></div>
+<pre><code><span class="cm">// ✗ PROBLEMÁTICO — roda no loop(), aloca a cada iteração</span>
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="ty">String</span> msg = <span class="st">"Temp: "</span>;
+    msg += <span class="fn">lerTemperatura</span>();
+    msg += <span class="st">"°C"</span>;
+    Serial.<span class="fn">println</span>(msg);   <span class="cm">// nova alocação a cada volta → fragmenta</span>
+    <span class="fn">delay</span>(<span class="nm">100</span>);
+}
+
+<span class="cm">// ✓ EFICIENTE — buffer fixo, zero alocação</span>
+<span class="ty">void</span> <span class="fn">loop</span>() {
+    <span class="ty">char</span> msg[<span class="nm">32</span>];
+    <span class="fn">snprintf</span>(msg, <span class="kw">sizeof</span>(msg), <span class="st">"Temp: %d°C"</span>, <span class="fn">lerTemperatura</span>());
+    Serial.<span class="fn">println</span>(msg);   <span class="cm">// mesma memória sempre → estável</span>
+    <span class="fn">delay</span>(<span class="nm">100</span>);
+}</code></pre>
+  </div>
+  <div class="note danger">
+    <span class="lbl">Sintoma real</span>
+    <p>Um projeto que funciona por minutos e depois "trava do nada" após horas rodando é o sintoma clássico de fragmentação de heap por uso intenso de <span class="ic">String</span>. A correção é migrar os caminhos quentes para <span class="ic">char*</span> + <span class="ic">snprintf</span>.</p>
+  </div>
+</section>
+
+<!-- 10 BOAS PRATICAS -->
+<section class="section" id="boas-praticas">
+  <div class="section-tag">Seção 10</div>
+  <h2>Boas práticas consolidadas</h2>
+  <h4>Padrão recomendado para funções</h4>
+  <div class="code">
+    <div class="code-head"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="code-file">boas_praticas.c</span><span class="code-lang">C</span></div>
+<pre><code><span class="cm">// Quem chama fornece o buffer e seu tamanho.</span>
+<span class="cm">// A função nunca aloca nem retorna ponteiro interno.</span>
+<span class="ty">void</span> <span class="fn">formatarStatus</span>(<span class="ty">char</span> *dst, <span class="ty">size_t</span> n,
+                    <span class="ty">int</span> id, <span class="ty">bool</span> ligado) {
+    <span class="fn">snprintf</span>(dst, n, <span class="st">"modulo %d: %s"</span>,
+             id, ligado ? <span class="st">"ON"</span> : <span class="st">"OFF"</span>);
+}
+
+<span class="ty">void</span> <span class="fn">exemplo</span>(<span class="ty">void</span>) {
+    <span class="ty">char</span> linha[<span class="nm">40</span>];
+    <span class="fn">formatarStatus</span>(linha, <span class="kw">sizeof</span>(linha), <span class="nm">3</span>, <span class="kw">true</span>);
+    <span class="cm">// linha = "modulo 3: ON"</span>
+}</code></pre>
+  </div>
+  <h4>Checklist mental ao lidar com strings</h4>
+  <div class="tbl"><table>
+    <tr><th>Pergunta</th><th>Se sim →</th></tr>
+    <tr><td>Vai modificar o texto?</td><td>Array de char, não literal</td></tr>
+    <tr><td>Roda muitas vezes?</td><td>char* + snprintf, evite String</td></tr>
+    <tr><td>Tamanho conhecido?</td><td>Reserve N+1 bytes</td></tr>
+    <tr><td>Função monta texto?</td><td>Receba buffer de quem chama</td></tr>
+    <tr><td>Comparando strings?</td><td>strcmp(a,b)==0</td></tr>
+    <tr><td>É só leitura?</td><td>const char*</td></tr>
+  </table></div>
+  <div class="note tip">
+    <span class="lbl">O equilíbrio</span>
+    <p>Use <span class="ic">String</span> onde a conveniência vale mais que a performance (setup, parsing pontual). Use <span class="ic">char*</span> onde a estabilidade importa (loops, ISRs, bibliotecas). Saber alternar entre os dois é o que define o programador C/embarcado maduro.</p>
+  </div>
+</section>
+
+<!-- 11 CONCLUSAO -->
+<section class="section" id="conclusao">
+  <div class="section-tag">Seção 11</div>
+  <h2>Conclusão</h2>
+  <p>Strings em C parecem hostis no início porque expõem o que outras linguagens escondem: texto é memória, e memória precisa ser gerenciada. Mas é justamente esse controle que torna C insubstituível em sistemas embarcados.</p>
+  <p>Depois de internalizar três ideias — <strong>o terminador <span class="ic">'\0'</span></strong>, <strong>a diferença entre array e ponteiro</strong>, e <strong>o custo da memória dinâmica</strong> — você passa a escrever código que não só funciona, mas que continua funcionando depois de dias ligado. E essa é a verdadeira marca de software embarcado bem feito.</p>
+  <div class="note tip">
+    <span class="lbl">Próximo passo</span>
+    <p>Pegue um projeto seu que usa <span class="ic">String</span> dentro do <span class="ic">loop()</span> e migre para <span class="ic">char[]</span> + <span class="ic">snprintf</span>. Meça a RAM livre antes e depois com <span class="ic">ESP.getFreeHeap()</span> ao longo do tempo — a diferença na estabilidade é visível.</p>
+  </div>
+</section>
+
+</main>
+</div>
+</div>
+
+<footer>
+  <div class="wrap foot-inner">
+    <p>Guia char* &amp; String em C · <a href="https://github.com/professorThiago">github.com/professorThiago</a></p>
+    <p>Feito para GitHub Pages · MIT</p>
+  </div>
+</footer>
+
+<script>
+// progress bar + active TOC
+const prog=document.getElementById('progress');
+const links=[...document.querySelectorAll('nav.toc a')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+function onScroll(){
+  const h=document.documentElement;
+  const sc=h.scrollTop,max=h.scrollHeight-h.clientHeight;
+  prog.style.width=(sc/max*100)+'%';
+  let idx=0;
+  secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<=120)idx=i;});
+  links.forEach((a,i)=>a.classList.toggle('active',i===idx));
+}
+document.addEventListener('scroll',onScroll,{passive:true});onScroll();
+</script>
+</body>
+</html>
